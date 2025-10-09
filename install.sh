@@ -51,6 +51,11 @@ create_symlink "$DOTFILES_DIR/.vimrc" "$HOME/.vimrc"
 mkdir -p "$HOME/.config"
 create_symlink "$DOTFILES_DIR/.config/nvim" "$HOME/.config/nvim"
 
+# Symlink uv config
+if [ -d "$DOTFILES_DIR/.config/uv" ]; then
+    create_symlink "$DOTFILES_DIR/.config/uv" "$HOME/.config/uv"
+fi
+
 # Symlink Claude config (only safe files)
 # Note: API keys, cache files, and settings.json are NOT symlinked
 if [ -d "$DOTFILES_DIR/.claude" ]; then

@@ -1,0 +1,19 @@
+# uv configuration for ML/data science workflows
+
+[pip]
+# Use faster resolution strategies
+index-strategy = "unsafe-best-match"
+
+# Cache compiled wheels for faster installs
+compile-bytecode = true
+
+[tool]
+# Install CLI tools in isolated environments
+# Usage: uv tool install <package>
+
+[global]
+# Python version preference
+python-preference = "managed"
+
+# Use UV_PROJECT_ENVIRONMENT for local venvs
+# This keeps venvs in .venv/ within projects
