@@ -1,0 +1,38 @@
+# Environment variables and secrets
+.env
+*.env
+**/secrets.*
+*_key.sh
+anthropic_key.sh
+.gitconfig.local
+
+# Claude Code sensitive/cache files
+.claude/todos/
+.claude/shell-snapshots/
+.claude/projects/
+.claude/statsig/
+.claude/file-history/
+.claude/anthropic_key.sh
+.claude/*_key.sh
+.claude/settings.json
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor
+*~
+*.swp
+*.swo
+
+# Neovim
+.config/nvim/bundle/
+.config/nvim/.netrwhist
+.config/nvim/*.backup
+.config/nvim/*.pre-*
+
+# Other
+node_modules/
