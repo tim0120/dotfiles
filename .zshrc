@@ -5,10 +5,10 @@
 # Homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Fun startup message
-fortune | cowsay -r -W 100 --think
+# Allow console output during instant prompt (for fortune/cowsay)
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
-# Powerlevel10k instant prompt (must be near top)
+# Powerlevel10k instant prompt (must be near top, before any console output)
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -96,6 +96,7 @@ function chpwd() {
 eval $(thefuck --alias)
 
 # scm_breeze (git shortcuts)
+# Note: Helper functions (token_quote, _safe_eval) are in .zshenv
 [ -s "$HOME/.scm_breeze/scm_breeze.sh" ] && source "$HOME/.scm_breeze/scm_breeze.sh"
 
 # zoxide (smarter cd)
@@ -120,3 +121,10 @@ function zle-line-init {
     printf '\033[1 q'
 }
 zle -N zle-line-init
+
+# ============================================================================
+# STARTUP MESSAGE
+# ============================================================================
+
+# Fun startup message
+fortune | cowsay -r -W 100 --think

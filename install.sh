@@ -42,6 +42,7 @@ create_symlink() {
 }
 
 # Symlink dotfiles
+create_symlink "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
 create_symlink "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 create_symlink "$DOTFILES_DIR/.bash_profile" "$HOME/.bash_profile"
 create_symlink "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
