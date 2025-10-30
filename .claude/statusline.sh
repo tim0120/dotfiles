@@ -59,13 +59,9 @@ if [ -z "$dir_name" ] || [ "$cwd" = "/" ]; then
     dir_name="$cwd"
 fi
 
-# Color codes
+# Color codes (single dimmed color for everything)
 RESET='\033[0m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
+DIM='\033[2;37m'
 
 # Determine thinking mode indicator based on settings
 if [ "$thinking_enabled" = "true" ]; then
@@ -74,60 +70,31 @@ else
     thinking_indicator=""
 fi
 
-# Calculate approximate context usage
-context_indicator=""
-# Use transcript_path if it's recent, otherwise fall back to most recent JSONL
-target_jsonl=""
-if [ -n "$transcript_path" ] && [ -f "$transcript_path" ]; then
-    # Check if the transcript file was modified in the last 5 minutes (300 seconds)
-    file_age=$(($(date +%s) - $(stat -c %Y "$transcript_path" 2>/dev/null || stat -f %m "$transcript_path" 2>/dev/null || echo 0)))
-    if [ "$file_age" -lt 300 ]; then
-        # File is recent, use it (for multiple session support)
-        target_jsonl="$transcript_path"
-    fi
-fi
-
-# If no valid transcript_path or it's old, use the most recent JSONL
-if [ -z "$target_jsonl" ]; then
-    target_jsonl=$(ls -t $HOME/.claude/projects/*/*.jsonl 2>/dev/null | head -1)
-fi
-
-if [ -n "$target_jsonl" ] && [ -f "$target_jsonl" ]; then
-    # Get the most recent assistant message's input token count
-    # This represents the actual context size for that request
-    recent_tokens=$(tail -20 "$target_jsonl" 2>/dev/null | \
-        jq -r 'select(.type == "assistant") | .message.usage |
-        (.input_tokens + .cache_read_input_tokens)' 2>/dev/null | \
-        tail -1)
-
-    # Calculate actual percentage of 200k context window
-    # Showing context used, not remaining
-    if [ -n "$recent_tokens" ] && [ "$recent_tokens" -gt 0 ]; then
-        # Calculate percentage (assuming 200k context window)
-        percentage=$((recent_tokens * 100 / 200000))
-
-        # Only show if using more than 10% of context
-        if [ "$percentage" -gt 10 ]; then
-            context_indicator="${percentage}%"
-        fi
-
-        # Cap at 99% if not exceeding (since we're approximating)
-        if [ "$percentage" -gt 99 ] && [ "$exceeds_200k" != "true" ]; then
-            context_indicator="99%"
+# Get git branch and dirty status if in a git repository
+git_branch=""
+git_dirty=""
+if command -v git &> /dev/null; then
+    # Change to the cwd directory and check for git branch
+    if [ -d "$cwd" ]; then
+        branch=$(cd "$cwd" 2>/dev/null && git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        if [ -n "$branch" ]; then
+            git_branch="$branch"
+            # Check if there are uncommitted changes (staged or unstaged)
+            if [ -n "$(cd "$cwd" 2>/dev/null && git status --porcelain 2>/dev/null)" ]; then
+                git_dirty="*"
+            fi
         fi
     fi
 fi
 
-# Don't override with MAX even if exceeds_200k is true
-# The percentage will show the actual usage
-
-# Build statusline
-echo -en "${BLUE}${model}${RESET}"
+# Build statusline (all one color)
+echo -en "${DIM}${model}"
 if [ -n "$thinking_indicator" ]; then
     echo -en " ${thinking_indicator}"
 fi
-if [ -n "$context_indicator" ]; then
-    echo -en "  ${CYAN}${context_indicator}${RESET}"
+echo -en "  \$${cost_formatted}"
+echo -en "  ${dir_name}"
+if [ -n "$git_branch" ]; then
+    echo -en " (${git_branch}${git_dirty})"
 fi
-echo -en "  ${GREEN}\$${cost_formatted}${RESET}"
-echo -en "  ${YELLOW}${dir_name}${RESET}"
+echo -en "${RESET}"
