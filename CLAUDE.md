@@ -59,14 +59,19 @@ touch ~/.env
 ## Claude Code Integration
 
 **Statusline scripts** (in `.claude/`):
-- `statusline.sh` - Shows model, thinking mode (🧠), context %, cost, directory
+- `statusline.sh` - Shows model, thinking mode, context %, cost, directory, SSH host
 - `detect_thinking_mode.sh` - Checks recent JSONL logs for thinking blocks
-- `claude-notification.sh` - macOS notification when tasks complete
+- `claude-notification.sh` - Plays sound when tasks complete
+
+**MCP servers** (`.claude/mcp_settings.json`):
+- `clippy` - Buffer operations, clipboard access, recent downloads
+- Symlinked for consistency across machines
+- User-scope config (applies to all projects)
 
 **Settings approach:**
 - Template shows recommended config
 - Actual `settings.json` stays local (users customize it)
-- Scripts are symlinked and version controlled
+- Scripts and MCP settings are symlinked and version controlled
 
 ## Python Environment
 

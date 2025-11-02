@@ -79,6 +79,11 @@ if [ -d "$DOTFILES_DIR/.claude" ]; then
         chmod +x "$HOME/.claude/claude-notification.sh"
     fi
 
+    # Symlink MCP settings
+    if [ -f "$DOTFILES_DIR/.claude/mcp_settings.json" ]; then
+        create_symlink "$DOTFILES_DIR/.claude/mcp_settings.json" "$HOME/.claude/mcp_settings.json"
+    fi
+
     # Symlink commands directory if it exists
     if [ -d "$DOTFILES_DIR/.claude/commands" ]; then
         create_symlink "$DOTFILES_DIR/.claude/commands" "$HOME/.claude/commands"

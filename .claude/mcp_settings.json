@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "clippy": {
+      "command": "clippy",
+      "args": ["mcp-server"]
+    }
+  }
+}
