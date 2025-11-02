@@ -59,6 +59,11 @@ if [ -z "$dir_name" ] || [ "$cwd" = "/" ]; then
     dir_name="$cwd"
 fi
 
+# Replace home directory with ~
+if [ "$cwd" = "$HOME" ]; then
+    dir_name="~"
+fi
+
 # Color codes (single dimmed color for everything)
 RESET='\033[0m'
 DIM='\033[2;37m'
@@ -68,6 +73,13 @@ if [ "$thinking_enabled" = "true" ]; then
     thinking_indicator="🧠"
 else
     thinking_indicator=""
+fi
+
+# Detect if we're on a remote machine via SSH
+remote_host=""
+if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    # Get hostname (short form)
+    remote_host=$(hostname -s 2>/dev/null || hostname 2>/dev/null)
 fi
 
 # Get git branch and dirty status if in a git repository
@@ -92,8 +104,11 @@ echo -en "${DIM}${model}"
 if [ -n "$thinking_indicator" ]; then
     echo -en " ${thinking_indicator}"
 fi
-echo -en "  \$${cost_formatted}"
-echo -en "  ${dir_name}"
+if [ -n "$remote_host" ]; then
+    echo -en "  @${remote_host}:${dir_name}"
+else
+    echo -en "  ${dir_name}"
+fi
 if [ -n "$git_branch" ]; then
     echo -en " (${git_branch}${git_dirty})"
 fi
