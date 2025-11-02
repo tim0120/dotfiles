@@ -1,0 +1,12 @@
+#!/bin/bash
+# Automatically exclude .git from iCloud sync
+
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null)"
+if [ -n "$GIT_DIR" ] && [ -d "$GIT_DIR" ]; then
+    # Check if we're in iCloud Drive
+    if [[ "$GIT_DIR" == *"/Library/Mobile Documents/"* ]] || [[ "$GIT_DIR" == *"/Documents/"* ]]; then
+        # Set the iCloud exclude attribute
+        xattr -w com.apple.fileprovider.ignore#P 1 "$GIT_DIR" 2>/dev/null
+        echo "Excluded .git from iCloud sync"
+    fi
+fi

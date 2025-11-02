@@ -57,6 +57,11 @@ if [ -d "$DOTFILES_DIR/.config/uv" ]; then
     create_symlink "$DOTFILES_DIR/.config/uv" "$HOME/.config/uv"
 fi
 
+# Symlink git templates
+if [ -d "$DOTFILES_DIR/.git-templates" ]; then
+    create_symlink "$DOTFILES_DIR/.git-templates" "$HOME/.git-templates"
+fi
+
 # Symlink Claude config (only safe files)
 # Note: API keys, cache files, and settings.json are NOT symlinked
 if [ -d "$DOTFILES_DIR/.claude" ]; then

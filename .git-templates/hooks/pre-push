@@ -1,0 +1,55 @@
+#!/bin/bash
+# Pre-push hook to prevent accidents on protected branches
+
+# Get the current branch name
+current_branch=$(git symbolic-ref --short HEAD)
+
+# Protected branches
+PROTECTED_BRANCHES="main master"
+
+# Check if pushing to a protected branch
+for branch in $PROTECTED_BRANCHES; do
+    if [ "$current_branch" = "$branch" ]; then
+        # Check if this is a force push
+        while read local_ref local_sha remote_ref remote_sha; do
+            if [ "$remote_sha" != "0000000000000000000000000000000000000000" ]; then
+                # Check for force push (non-fast-forward)
+                if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+                    echo "ERROR: Force push to $branch is not allowed"
+                    echo "If you really need to force push, use: git push --no-verify --force"
+                    exit 1
+                fi
+            fi
+        done
+
+        # Check for WIP or fixup commits
+        if git log @{u}.. --oneline | grep -iE "(WIP|FIXUP|TODO|XXX)" > /dev/null 2>&1; then
+            echo "WARNING: Found WIP/FIXUP commits in push to $branch:"
+            git log @{u}.. --oneline | grep -iE "(WIP|FIXUP|TODO|XXX)"
+            echo ""
+            read -p "Continue with push? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                exit 1
+            fi
+        fi
+
+        # Check for debug statements in diff
+        if git diff @{u}.. | grep -E "(console\.log|debugger|pdb\.set_trace|binding\.pry)" > /dev/null 2>&1; then
+            echo "WARNING: Debug statements found in commits:"
+            git diff @{u}.. --name-only | while read file; do
+                if git diff @{u}.. "$file" | grep -E "(console\.log|debugger|pdb\.set_trace|binding\.pry)" > /dev/null 2>&1; then
+                    echo "  - $file"
+                fi
+            done
+            echo ""
+            read -p "Continue with push? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                exit 1
+            fi
+        fi
+    fi
+done
+
+exit 0

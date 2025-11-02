@@ -1,0 +1,46 @@
+#!/bin/bash
+# Commit message validation hook
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# Skip if this is a merge commit
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+    exit 0
+fi
+
+# Skip if this is a revert commit
+if echo "$commit_msg" | grep -q "^Revert "; then
+    exit 0
+fi
+
+# Check minimum length (at least 10 characters, excluding auto-generated footers)
+msg_body=$(echo "$commit_msg" | sed '/^$/q' | head -1)
+msg_length=${#msg_body}
+
+if [ "$msg_length" -lt 10 ]; then
+    echo "ERROR: Commit message too short (minimum 10 characters)"
+    echo "Current message: '$msg_body'"
+    exit 1
+fi
+
+# Check maximum line length for first line (72 characters recommended)
+first_line=$(echo "$commit_msg" | head -1)
+first_line_length=${#first_line}
+
+if [ "$first_line_length" -gt 100 ]; then
+    echo "WARNING: First line is too long ($first_line_length chars, recommended max 72)"
+    echo "Consider shortening your commit message summary"
+fi
+
+# Prevent committing with WIP, TODO, FIXUP in message on main/master
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
+    if echo "$commit_msg" | grep -iqE "^(WIP|TODO|FIXUP)"; then
+        echo "ERROR: Cannot commit with WIP/TODO/FIXUP prefix on $current_branch branch"
+        echo "Please use a descriptive commit message or commit on a feature branch"
+        exit 1
+    fi
+fi
+
+exit 0

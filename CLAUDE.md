@@ -73,6 +73,18 @@ touch ~/.env
 - Actual `settings.json` stays local (users customize it)
 - Scripts and MCP settings are symlinked and version controlled
 
+## Git Templates
+
+**Template directory** (`.git-templates/`):
+- Automatically applied to all new repos via `init.templateDir` in `.gitconfig.local`
+- **Hooks:**
+  - `pre-commit` - Blocks commits with API keys, passwords, hardcoded paths, private keys
+  - `pre-push` - Prevents force push to main/master, warns on WIP commits and debug statements
+  - `commit-msg` - Validates commit message length and format
+  - `post-checkout` - Excludes .git from iCloud sync
+- **Default excludes** (`info/exclude`) - macOS, Python, Node.js, IDE files
+- **Config defaults** - Sets main as default branch, enables auto-prune
+
 ## Python Environment
 
 Uses **uv** (not conda). Config in `.config/uv/uv.toml`:

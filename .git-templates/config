@@ -1,0 +1,17 @@
+# Git template config - applied to all new repos
+# Default settings for repositories
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = false
+
+[fetch]
+	prune = true
+
+[diff]
+	colorMoved = default
+
+[merge]
+	conflictstyle = diff3
