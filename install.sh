@@ -84,6 +84,22 @@ if [ -d "$DOTFILES_DIR/.claude" ]; then
         chmod +x "$HOME/.claude/claude-notification.sh"
     fi
 
+    # Symlink hook scripts
+    if [ -f "$DOTFILES_DIR/.claude/claude-sync-hook.sh" ]; then
+        create_symlink "$DOTFILES_DIR/.claude/claude-sync-hook.sh" "$HOME/.claude/claude-sync-hook.sh"
+        chmod +x "$HOME/.claude/claude-sync-hook.sh"
+    fi
+
+    if [ -f "$DOTFILES_DIR/.claude/code-quality-check.sh" ]; then
+        create_symlink "$DOTFILES_DIR/.claude/code-quality-check.sh" "$HOME/.claude/code-quality-check.sh"
+        chmod +x "$HOME/.claude/code-quality-check.sh"
+    fi
+
+    if [ -f "$DOTFILES_DIR/.claude/format-on-edit.sh" ]; then
+        create_symlink "$DOTFILES_DIR/.claude/format-on-edit.sh" "$HOME/.claude/format-on-edit.sh"
+        chmod +x "$HOME/.claude/format-on-edit.sh"
+    fi
+
     # Symlink MCP settings
     if [ -f "$DOTFILES_DIR/.claude/mcp_settings.json" ]; then
         create_symlink "$DOTFILES_DIR/.claude/mcp_settings.json" "$HOME/.claude/mcp_settings.json"
