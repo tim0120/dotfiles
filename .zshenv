@@ -1,6 +1,9 @@
 # .zshenv - Sourced for ALL zsh shells (interactive and non-interactive)
 # This file is loaded before .zshrc and for every zsh session
 
+# Disable auto-activation of skyvenv in timbox
+export BOX_NO_SKYVENV=1
+
 # scm_breeze helper functions
 # These are needed because Claude Code's shell snapshots capture the git wrapper
 # functions but not their dependencies from scm_breeze

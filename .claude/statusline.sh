@@ -25,7 +25,9 @@ if command -v jq &> /dev/null; then
     duration=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
     lines_added=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
     lines_removed=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
-    model=$(echo "$input" | jq -r '.model.display_name // "Unknown"')
+    model_full=$(echo "$input" | jq -r '.model.display_name // "Unknown"')
+    # Simplify model name (remove version numbers and convert to lowercase)
+    model=$(echo "$model_full" | sed 's/ [0-9].*//' | tr '[:upper:]' '[:lower:]')
     cwd=$(echo "$input" | jq -r '.cwd // "~"')
     exceeds_200k=$(echo "$input" | jq -r '.exceeds_200k_tokens // false')
     transcript_path=$(echo "$input" | jq -r '.transcript_path // ""')
@@ -35,7 +37,9 @@ else
     duration=$(echo "$input" | grep -o '"total_duration_ms":[0-9]*' | cut -d: -f2)
     lines_added=$(echo "$input" | grep -o '"total_lines_added":[0-9]*' | cut -d: -f2)
     lines_removed=$(echo "$input" | grep -o '"total_lines_removed":[0-9]*' | cut -d: -f2)
-    model=$(echo "$input" | grep -o '"display_name":"[^"]*"' | cut -d'"' -f4)
+    model_full=$(echo "$input" | grep -o '"display_name":"[^"]*"' | cut -d'"' -f4)
+    # Simplify model name (remove version numbers and convert to lowercase)
+    model=$(echo "$model_full" | sed 's/ [0-9].*//' | tr '[:upper:]' '[:lower:]')
     cwd=$(echo "$input" | grep -o '"cwd":"[^"]*"' | cut -d'"' -f4)
     exceeds_200k=$(echo "$input" | grep -o '"exceeds_200k_tokens":[^,}]*' | cut -d: -f2)
     transcript_path=$(echo "$input" | grep -o '"transcript_path":"[^"]*"' | cut -d'"' -f4)
@@ -44,7 +48,7 @@ else
     duration=${duration:-0}
     lines_added=${lines_added:-0}
     lines_removed=${lines_removed:-0}
-    model=${model:-Unknown}
+    model=${model:-unknown}
     cwd=${cwd:-~}
     exceeds_200k=${exceeds_200k:-false}
     transcript_path=${transcript_path:-}
@@ -69,17 +73,74 @@ RESET='\033[0m'
 DIM='\033[2;37m'
 
 # Determine thinking mode indicator based on settings
-if [ "$thinking_enabled" = "true" ]; then
-    thinking_indicator="🧠"
-else
-    thinking_indicator=""
+thinking_indicator=""
+
+# Get container/hostname hash (first 12 chars like docker ps)
+hostname_full=$(hostname 2>/dev/null)
+hostname_hash="$hostname_full"
+if [ ${#hostname_full} -gt 12 ]; then
+    hostname_hash="${hostname_full:0:12}"
 fi
 
-# Detect if we're on a remote machine via SSH
-remote_host=""
+# Detect remote environment
+# SSH: Check for SSH environment variables
+ssh_detected=""
 if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-    # Get hostname (short form)
+    ssh_detected="yes"
+fi
+
+# Container/Cloud: Check for dev box or container environment
+container_env=""
+if [ -n "$DEVBOX_NAME" ] || [ -f "/.dockerenv" ] || [ -f "/run/.containerenv" ]; then
+    container_env="yes"
+fi
+
+# Get dev box information and strip username prefix
+devbox_info=""
+if [ -n "$DEVBOX_NAME" ]; then
+    devbox_info="$DEVBOX_NAME"
+
+    # Auto-detect username patterns to strip
+    detected_user=""
+
+    # Method 1: Extract from DEVBOX_NAME itself (username-something pattern)
+    if [[ "$devbox_info" =~ ^([a-z0-9]+)- ]]; then
+        detected_user="${BASH_REMATCH[1]}"
+    fi
+
+    # Method 2: Check common username sources (skip root)
+    if [ -z "$detected_user" ]; then
+        for potential_user in "$USER" "$LOGNAME" "$(whoami 2>/dev/null)"; do
+            if [ -n "$potential_user" ] && [ "$potential_user" != "root" ]; then
+                detected_user="$potential_user"
+                break
+            fi
+        done
+    fi
+
+    # Strip the detected username prefix if found
+    if [ -n "$detected_user" ]; then
+        devbox_info=$(echo "$devbox_info" | sed -E "s/^${detected_user}-//i")
+    fi
+fi
+
+# Build remote/host information
+remote_info=""
+if [ -n "$ssh_detected" ]; then
+    # Traditional SSH: show user@host
+    current_user=$(whoami 2>/dev/null || echo "$USER")
     remote_host=$(hostname -s 2>/dev/null || hostname 2>/dev/null)
+    if [ -n "$current_user" ] && [ -n "$remote_host" ]; then
+        remote_info="${current_user}@${remote_host}"
+    elif [ -n "$remote_host" ]; then
+        remote_info="@${remote_host}"
+    fi
+elif [ -n "$container_env" ]; then
+    # In a container/dev box: show container info
+    if [ -n "$devbox_info" ]; then
+        # Show devbox name as the "host"
+        remote_info="${devbox_info}"
+    fi
 fi
 
 # Get git branch and dirty status if in a git repository
@@ -99,17 +160,17 @@ if command -v git &> /dev/null; then
     fi
 fi
 
-# Build statusline (all one color)
+# Build statusline (canonical format)
 echo -en "${DIM}${model}"
+
 if [ -n "$thinking_indicator" ]; then
     echo -en " ${thinking_indicator}"
 fi
-if [ -n "$remote_host" ]; then
-    echo -en "  @${remote_host}:${dir_name}"
-else
-    echo -en "  ${dir_name}"
-fi
+
+# Show directory and git info
+echo -en " ${dir_name}"
 if [ -n "$git_branch" ]; then
     echo -en " (${git_branch}${git_dirty})"
 fi
+
 echo -en "${RESET}"

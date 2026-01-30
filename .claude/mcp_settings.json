@@ -3,6 +3,59 @@
     "clippy": {
       "command": "clippy",
       "args": ["mcp-server"]
+    },
+    "claude-history": {
+      "command": "bash",
+      "args": ["-c", "node ~/Documents/projects/claude-code-history-mcp/dist/index.js"]
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey=${EXA_API_KEY}&tools=web_search_exa,get_code_context_exa,crawling_exa,company_research_exa,linkedin_search_exa,deep_researcher_start,deep_researcher_check",
+      "headers": {}
+    },
+    "tavily": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp"],
+      "env": {
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+      }
+    },
+    "arxiv": {
+      "command": "uv",
+      "args": [
+        "tool",
+        "run",
+        "arxiv-mcp-server",
+        "--storage-path", "~/Documents/Papers/"
+      ]
+    },
+    "semantic-scholar-mcp": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "git+https://github.com/FujishigeTemma/semantic-scholar-mcp",
+        "semantic-scholar-mcp",
+        "serve"
+      ],
+      "env": {
+        "SEMANTIC_SCHOLAR_API_KEY": "${SEMANTIC_SCHOLAR_API_KEY}"
+      }
+    },
+    "opensearch": {
+      "command": "npx",
+      "args": ["-y", "opensearch-mcp-server"],
+      "env": {
+        "OPENSEARCH_URL": "http://localhost:9200"
+      }
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
     }
   }
 }
