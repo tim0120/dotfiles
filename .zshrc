@@ -276,15 +276,15 @@ fi
 # TIM'S BOX SCRIPTS - Load if available
 # ============================================================================
 
-# Auto-source Tim's box scripts from main pollux repo (works anywhere)
+# Auto-source Tim's box scripts from timbox/pollux repo
 # Always source to ensure functions are defined in new shells
 # Pre-set POLLUX_DIR to avoid path detection issues when sourcing from /
-if [ -f ~/Developer/workshop_labs/pollux/bash/tim/all.sh ]; then
-  export POLLUX_DIR=~/Developer/workshop_labs/pollux
-  source ~/Developer/workshop_labs/pollux/bash/tim/all.sh
-elif [ -f ~/Developer/workshop_labs/timbox/bash/tim/all.sh ]; then
-  export POLLUX_DIR=~/Developer/workshop_labs/timbox
-  source ~/Developer/workshop_labs/timbox/bash/tim/all.sh
+if [ -f ~/workshop-labs/code/pollux/bash/tim/all.sh ]; then
+  export POLLUX_DIR=~/workshop-labs/code/pollux
+  source ~/workshop-labs/code/pollux/bash/tim/all.sh
+elif [ -f ~/workshop-labs/code/timbox/bash/tim/all.sh ]; then
+  export POLLUX_DIR=~/workshop-labs/code/timbox
+  source ~/workshop-labs/code/timbox/bash/tim/all.sh
 fi
 
 # ============================================================================
