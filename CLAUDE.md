@@ -1,122 +1,148 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
-## Repository Overview
+## What This Is
 
-This is a personal dotfiles repository for macOS. Files are version-controlled in `~/.dotfiles/` and symlinked to `~/` via `install.sh`. The repo uses a split-config approach where sensitive/personal information is kept in separate gitignored files.
+This is **Tim Kostolansky's personal dotfiles** repository. It's a public repo on GitHub (`tim0120/dotfiles`) but configured specifically for one user. The git identity, shell preferences, and tool configs are all Tim's personal settings.
 
-## Key Architecture Patterns
+**Key insight**: This repo uses `$HOME` and `~` instead of hardcoded paths like `/Users/timkostolansky`, so the same dotfiles work on:
+- Local Mac (`/Users/timkostolansky`)
+- GCP dev boxes (`/home/timkostolansky`)
+- Any other machine with a different home directory
 
-### Split Configuration Strategy
+## Multi-Machine Deployment
 
-**Public configs** (committed):
-- `.gitconfig` - Contains only aliases, LFS settings, and credential helper
-- `.zshrc`, `.bash_profile` - Shell configs with `$HOME` instead of hardcoded paths
-- `.claude/settings.template.json` - Example settings
+These dotfiles are deployed across multiple machines:
 
-**Private configs** (gitignored):
-- `.gitconfig.local` - User name and email (included via `[include]` directive)
-- `.claude/settings.json` - Actual Claude Code settings (copied from template on install)
-- `.env` - Environment variables and secrets
+| Machine | How to Deploy | How to Update |
+|---------|---------------|---------------|
+| Local Mac | Already set up | Edit files directly (symlinked) |
+| GCP dev boxes | `git clone ... && ./install.sh` | `cd ~/.dotfiles && git pull && ./install.sh` |
+| New machines | Same as GCP | Same as GCP |
 
-### Symlink Management
+**Important**: Changes made locally do NOT automatically propagate to remote machines. After pushing changes, you must manually pull and reinstall on each remote:
 
-The `install.sh` script:
-1. Backs up existing files to timestamped `~/.dotfiles_backup_YYYYMMDD_HHMMSS/`
-2. Creates symlinks: `~/.zshrc` → `~/.dotfiles/.zshrc`
-3. Handles both files and directories (`.config/nvim`, `.claude/`)
-4. Does NOT symlink `.claude/settings.json` (Claude Code writes to it)
-
-When editing configs, you're editing the source in `~/.dotfiles/`, not copies.
-
-## Setup and Testing
-
-**Fresh install:**
 ```bash
-git clone git@github.com:tim0120/dotfiles.git ~/.dotfiles
+# On remote machine
+cd ~/.dotfiles && git pull && ./install.sh
+```
+
+To add dotfiles setup to dev box provisioning, add this to your provisioning script:
+```bash
+git clone https://github.com/tim0120/dotfiles.git ~/.dotfiles 2>/dev/null || \
+    (cd ~/.dotfiles && git pull)
 ~/.dotfiles/install.sh
 ```
 
-**After install, create private configs:**
-```bash
-# Git identity
-cat > ~/.gitconfig.local << EOF
-[user]
-  name = Your Name
-  email = your@email.com
-EOF
+## Repository Structure
 
-# Environment secrets (optional)
-touch ~/.env
+```
+~/.dotfiles/
+├── .claude/                    # Claude Code configuration
+│   ├── statusline.sh          # Status bar display
+│   ├── claude-notification.sh # Sound on task complete
+│   ├── claude-sync-hook.sh    # Sync conversations (Stop hook)
+│   ├── code-quality-check.sh  # Lint/typecheck (Stop hook)
+│   ├── format-on-edit.sh      # Auto-format Python (PostToolUse hook)
+│   ├── detect_thinking_mode.sh
+│   ├── mcp_settings.json      # MCP server configs (uses env vars)
+│   └── settings.template.json # Template for settings.json
+├── .config/
+│   ├── nvim/                  # Neovim config
+│   └── uv/                    # uv (Python) config
+├── .git-templates/            # Git hooks for all repos
+│   └── hooks/
+│       ├── pre-commit         # Blocks secrets, hardcoded paths
+│       ├── pre-push           # Prevents force push to main
+│       └── commit-msg         # Validates commit messages
+├── .gitconfig                 # Git config (includes identity)
+├── .gitignore                 # What NOT to commit
+├── .zshrc                     # Main shell config
+├── .zshenv                    # Shell env (loaded for all shells)
+├── .vimrc                     # Vim config
+├── install.sh                 # Deployment script
+└── CLAUDE.md                  # This file
 ```
 
-**Testing changes:**
-- Edit files in `~/.dotfiles/`
-- Changes take effect immediately (symlinks)
-- Test in new terminal or `source ~/.zshrc`
+## What Gets Symlinked vs Copied vs Ignored
 
-## Claude Code Integration
+| File | Treatment | Reason |
+|------|-----------|--------|
+| `.zshrc`, `.gitconfig`, etc. | Symlinked | Changes in repo appear immediately |
+| `.claude/*.sh` | Symlinked | Hook scripts shared across machines |
+| `.claude/mcp_settings.json` | Symlinked | MCP config shared (uses `${ENV_VAR}` refs) |
+| `.claude/settings.json` | **Copied from template** | Claude Code writes to this file |
+| `.env`, `*_key.sh` | **Gitignored** | Contains secrets |
+| `.gitconfig.local` | **Gitignored** | Machine-specific overrides |
 
-**Statusline scripts** (in `.claude/`):
-- `statusline.sh` - Shows model, thinking mode, context %, cost, directory, SSH host
-- `detect_thinking_mode.sh` - Checks recent JSONL logs for thinking blocks
-- `claude-notification.sh` - Plays sound when tasks complete
+## Security Model
 
-**MCP servers** (`.claude/mcp_settings.json`):
-- `clippy` - Buffer operations, clipboard access, recent downloads
-- Symlinked for consistency across machines
-- User-scope config (applies to all projects)
+**Committed (safe)**:
+- Git identity uses GitHub noreply email (`39891386+tim0120@users.noreply.github.com`)
+- API keys use environment variable references (`${EXA_API_KEY}`)
+- All paths use `$HOME` or `~`, never hardcoded usernames
 
-**Settings approach:**
-- Template shows recommended config
-- Actual `settings.json` stays local (users customize it)
-- Scripts and MCP settings are symlinked and version controlled
+**Gitignored (secrets)**:
+- `.env` - API keys and secrets
+- `*_key.sh` - Key files
+- `.claude/settings.json` - May contain sensitive permissions
+- `.gitconfig.local` - Machine-specific overrides
 
-## Git Templates
+**Pre-commit hook protection**:
+- Blocks commits containing API key patterns (`sk-ant-*`, `AKIA*`, etc.)
+- Blocks hardcoded home paths (`/Users/username`, `/home/username`)
+- Warns on email addresses (except noreply)
 
-**Template directory** (`.git-templates/`):
-- Automatically applied to all new repos via `init.templateDir` in `.gitconfig.local`
-- **Hooks:**
-  - `pre-commit` - Blocks commits with API keys, passwords, hardcoded paths, private keys
-  - `pre-push` - Prevents force push to main/master, warns on WIP commits and debug statements
-  - `commit-msg` - Validates commit message length and format
-  - `post-checkout` - Excludes .git from iCloud sync
-- **Default excludes** (`info/exclude`) - macOS, Python, Node.js, IDE files
-- **Config defaults** - Sets main as default branch, enables auto-prune
+## Claude Code Hooks
 
-## Python Environment
+The `settings.json` references these hooks which MUST exist on all machines:
 
-Uses **uv** (not conda). Config in `.config/uv/uv.toml`:
-- `index-strategy = "unsafe-best-match"` for speed
-- `compile-bytecode = true` for faster startups
-- System Python: 3.13.2 from Homebrew
+```json
+{
+  "hooks": {
+    "PostToolUse": [{"matcher": "Edit|Write", "command": "~/.claude/format-on-edit.sh"}],
+    "Stop": [
+      {"command": "~/.claude/code-quality-check.sh"},
+      {"command": "~/.claude/claude-notification.sh"},
+      {"command": "~/.claude/claude-sync-hook.sh"}
+    ]
+  }
+}
+```
 
-## Adding New Dotfiles
+If these scripts don't exist, Claude Code will fail with "not found" errors. The `install.sh` script creates symlinks for all of them.
 
-1. Move file from `~/` to `~/.dotfiles/`
-2. Replace hardcoded paths with `$HOME` or `~`
+## Common Tasks
+
+### Adding a new dotfile
+1. Move file to `~/.dotfiles/`
+2. Replace any hardcoded paths with `$HOME` or `~`
 3. Add symlink creation to `install.sh`
-4. If file contains secrets, add to `.gitignore` and create split-config approach
-5. Commit changes (but don't push - user approval required)
+4. If it contains secrets, add to `.gitignore` instead
 
-## Organizing Config Files
+### Adding a new Claude Code hook
+1. Create script in `~/.dotfiles/.claude/`
+2. Make it executable and add graceful fallbacks (check if dependencies exist)
+3. Add symlink creation to `install.sh`
+4. Reference it in `settings.json` (which stays local)
 
-Use section headers for clarity:
+### Deploying to a new machine
 ```bash
-# ============================================================================
-# SECTION NAME
-# ============================================================================
+# Clone and install
+git clone https://github.com/tim0120/dotfiles.git ~/.dotfiles
+~/.dotfiles/install.sh
+
+# Create local secrets file
+touch ~/.env
+# Add API keys: EXA_API_KEY, TAVILY_API_KEY, etc.
 ```
 
-**Standard order for shell RC files:**
-1. Early init (brew, instant prompt)
-2. oh-my-zsh config
-3. Environment variables
-4. PATH configuration
-5. Aliases
-6. Functions
-7. Tool initialization
-8. Shell behavior
+### Updating remote machines after local changes
+```bash
+# Push from local
+cd ~/.dotfiles && git add -A && git commit -m "Update" && git push
 
-Keep comments minimal but explanatory.
+# Pull on each remote
+ssh <remote> "cd ~/.dotfiles && git pull && ./install.sh"
+```
