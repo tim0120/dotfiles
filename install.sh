@@ -57,6 +57,11 @@ if [ -d "$DOTFILES_DIR/.config/uv" ]; then
     create_symlink "$DOTFILES_DIR/.config/uv" "$HOME/.config/uv"
 fi
 
+# Symlink Karabiner-Elements config (Goku .edn file)
+if [ -f "$DOTFILES_DIR/.config/karabiner.edn" ]; then
+    create_symlink "$DOTFILES_DIR/.config/karabiner.edn" "$HOME/.config/karabiner.edn"
+fi
+
 # Symlink git templates
 if [ -d "$DOTFILES_DIR/.git-templates" ]; then
     create_symlink "$DOTFILES_DIR/.git-templates" "$HOME/.git-templates"
@@ -98,6 +103,11 @@ if [ -d "$DOTFILES_DIR/.claude" ]; then
     if [ -f "$DOTFILES_DIR/.claude/format-on-edit.sh" ]; then
         create_symlink "$DOTFILES_DIR/.claude/format-on-edit.sh" "$HOME/.claude/format-on-edit.sh"
         chmod +x "$HOME/.claude/format-on-edit.sh"
+    fi
+
+    if [ -f "$DOTFILES_DIR/.claude/pre-commit-check.sh" ]; then
+        create_symlink "$DOTFILES_DIR/.claude/pre-commit-check.sh" "$HOME/.claude/pre-commit-check.sh"
+        chmod +x "$HOME/.claude/pre-commit-check.sh"
     fi
 
     # Symlink MCP settings

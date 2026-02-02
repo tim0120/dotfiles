@@ -101,6 +101,7 @@ The `settings.json` references these hooks which MUST exist on all machines:
 ```json
 {
   "hooks": {
+    "PreToolUse": [{"matcher": "Bash", "command": "~/.claude/pre-commit-check.sh"}],
     "PostToolUse": [{"matcher": "Edit|Write", "command": "~/.claude/format-on-edit.sh"}],
     "Stop": [
       {"command": "~/.claude/code-quality-check.sh"},
@@ -110,6 +111,16 @@ The `settings.json` references these hooks which MUST exist on all machines:
   }
 }
 ```
+
+### Security: Pre-commit Check
+
+The `pre-commit-check.sh` hook runs **before** any `git commit` command Claude executes. It scans staged files for:
+- Hardcoded home paths (`/Users/xxx`, `/home/xxx`)
+- API keys (Anthropic, OpenAI, AWS)
+- Private keys
+- Passwords and auth tokens
+
+If issues are found, Claude is blocked from committing and told to fix the problems first. This is a Claude-specific safety layer on top of the git pre-commit hook.
 
 If these scripts don't exist, Claude Code will fail with "not found" errors. The `install.sh` script creates symlinks for all of them.
 
