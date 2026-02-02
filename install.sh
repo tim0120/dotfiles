@@ -62,6 +62,20 @@ if [ -f "$DOTFILES_DIR/.config/karabiner.edn" ]; then
     create_symlink "$DOTFILES_DIR/.config/karabiner.edn" "$HOME/.config/karabiner.edn"
 fi
 
+# Symlink Starship prompt config
+if [ -f "$DOTFILES_DIR/.config/starship.toml" ]; then
+    create_symlink "$DOTFILES_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
+fi
+
+# Symlink tmux config and scripts
+if [ -f "$DOTFILES_DIR/.tmux.conf" ]; then
+    create_symlink "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+fi
+
+if [ -d "$DOTFILES_DIR/.tmux" ]; then
+    create_symlink "$DOTFILES_DIR/.tmux" "$HOME/.tmux"
+fi
+
 # Symlink git templates
 if [ -d "$DOTFILES_DIR/.git-templates" ]; then
     create_symlink "$DOTFILES_DIR/.git-templates" "$HOME/.git-templates"

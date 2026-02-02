@@ -1,0 +1,26 @@
+format = "$directory $git_branch$git_status $cmd_duration$line_break$character"
+
+[directory]
+format = "[ $path]($style)"
+style = "blue bold"
+truncation_length = 3
+
+[git_branch]
+format = "[ $branch]($style) "
+style = "purple"
+
+[git_status]
+format = "[$all_status$ahead_behind]($style)"
+style = "red"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+
+[cmd_duration]
+min_time = 2000
+format = "[ $duration]($style) "
+style = "yellow"
