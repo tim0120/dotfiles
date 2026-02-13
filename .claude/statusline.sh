@@ -26,8 +26,8 @@ if command -v jq &> /dev/null; then
     lines_added=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
     lines_removed=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
     model_full=$(echo "$input" | jq -r '.model.display_name // "Unknown"')
-    # Simplify model name (remove version numbers and convert to lowercase)
-    model=$(echo "$model_full" | sed 's/ [0-9].*//' | tr '[:upper:]' '[:lower:]')
+    # Simplify model name (strip "Claude" prefix, keep version, lowercase)
+    model=$(echo "$model_full" | sed 's/^Claude //' | tr '[:upper:]' '[:lower:]')
     cwd=$(echo "$input" | jq -r '.cwd // "~"')
     exceeds_200k=$(echo "$input" | jq -r '.exceeds_200k_tokens // false')
     transcript_path=$(echo "$input" | jq -r '.transcript_path // ""')
@@ -38,8 +38,8 @@ else
     lines_added=$(echo "$input" | grep -o '"total_lines_added":[0-9]*' | cut -d: -f2)
     lines_removed=$(echo "$input" | grep -o '"total_lines_removed":[0-9]*' | cut -d: -f2)
     model_full=$(echo "$input" | grep -o '"display_name":"[^"]*"' | cut -d'"' -f4)
-    # Simplify model name (remove version numbers and convert to lowercase)
-    model=$(echo "$model_full" | sed 's/ [0-9].*//' | tr '[:upper:]' '[:lower:]')
+    # Simplify model name (strip "Claude" prefix, keep version, lowercase)
+    model=$(echo "$model_full" | sed 's/^Claude //' | tr '[:upper:]' '[:lower:]')
     cwd=$(echo "$input" | grep -o '"cwd":"[^"]*"' | cut -d'"' -f4)
     exceeds_200k=$(echo "$input" | grep -o '"exceeds_200k_tokens":[^,}]*' | cut -d: -f2)
     transcript_path=$(echo "$input" | grep -o '"transcript_path":"[^"]*"' | cut -d'"' -f4)
@@ -143,18 +143,27 @@ elif [ -n "$container_env" ]; then
     fi
 fi
 
-# Get git branch and dirty status if in a git repository
+# Get git branch and detailed status if in a git repository
 git_branch=""
-git_dirty=""
+git_status=""
 if command -v git &> /dev/null; then
     # Change to the cwd directory and check for git branch
     if [ -d "$cwd" ]; then
         branch=$(cd "$cwd" 2>/dev/null && git rev-parse --abbrev-ref HEAD 2>/dev/null)
         if [ -n "$branch" ]; then
             git_branch="$branch"
-            # Check if there are uncommitted changes (staged or unstaged)
-            if [ -n "$(cd "$cwd" 2>/dev/null && git status --porcelain 2>/dev/null)" ]; then
-                git_dirty="*"
+            # Get detailed git status
+            status_output=$(cd "$cwd" 2>/dev/null && git status --porcelain 2>/dev/null)
+            if [ -n "$status_output" ]; then
+                # Count different types of changes
+                staged=$(echo "$status_output" | grep -c "^[MADRC]")
+                unstaged=$(echo "$status_output" | grep -c "^.[MD]")
+                untracked=$(echo "$status_output" | grep -c "^??")
+
+                # Build descriptive status markers (matches Starship defaults)
+                [ "$staged" -gt 0 ] && git_status="${git_status}+"      # staged changes
+                [ "$unstaged" -gt 0 ] && git_status="${git_status}!"    # modified/unstaged
+                [ "$untracked" -gt 0 ] && git_status="${git_status}?"   # untracked files
             fi
         fi
     fi
@@ -170,7 +179,11 @@ fi
 # Show directory and git info
 echo -en " ${dir_name}"
 if [ -n "$git_branch" ]; then
-    echo -en " (${git_branch}${git_dirty})"
+    if [ -n "$git_status" ]; then
+        echo -en " (${git_branch} ${git_status})"
+    else
+        echo -en " (${git_branch})"
+    fi
 fi
 
 echo -en "${RESET}"

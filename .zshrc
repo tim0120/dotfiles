@@ -150,10 +150,32 @@ alias mkdircd='(){ mkdir "$1" && cd "$1"}'
 alias rm='trash'
 alias realrm='/bin/rm'
 
+# Budget tracker
+alias budget='~/.budget/.venv/bin/python ~/.budget/cli.py'
+
 # Basic ls aliases
 alias ll='ls -la'
 alias la='ls -A'
 alias l='ls -CF'
+
+# Twitter/X CLI (bird-fork)
+# Uses forked bird with better tweet verification: ~/Developer/projects/bird-fork
+unalias tweet 2>/dev/null
+maccy-img() { sqlite3 "$HOME/Library/Containers/org.p0deje.Maccy/Data/Library/Application Support/Maccy/Storage.sqlite" "SELECT writefile('/tmp/clip.png', hic.ZVALUE) FROM ZHISTORYITEM hi JOIN ZHISTORYITEMCONTENT hic ON hic.ZITEM = hi.Z_PK WHERE hic.ZTYPE = 'public.png' ORDER BY hi.ZLASTCOPIEDAT DESC LIMIT 1" >/dev/null; }
+tweet() {
+  if [[ "$1" == "--img" ]]; then
+    shift
+    pngpaste /tmp/clip.png 2>/dev/null || maccy-img
+    catimg -w 100 /tmp/clip.png
+    read "?Tweet this? [y/N] "
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+      node ~/Developer/projects/bird-fork/dist/cli.js --cookie-source firefox --firefox-profile "zen-profile" tweet "$@" --media /tmp/clip.png
+    fi
+  else
+    node ~/Developer/projects/bird-fork/dist/cli.js --cookie-source firefox --firefox-profile "zen-profile" tweet "$@"
+  fi
+}
+alias tweet-tim='node ~/Developer/projects/bird-fork/dist/cli.js tweet'
 
 # ============================================================================
 # FUNCTIONS
