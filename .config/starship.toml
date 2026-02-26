@@ -2,26 +2,30 @@ format = "$directory$git_branch$git_status$line_break$character"
 right_format = "$cmd_duration"
 
 [directory]
-format = "[ $path]($style)"
-style = "blue bold"
+format = "[$path]($style) "
+style = "fg:#6699AA"
 truncation_length = 3
 
 [git_branch]
-format = "[  $branch]($style)"
-style = "purple"
+format = "[$branch]($style) "
+style = "fg:#888888"
 
 [git_status]
 format = "[$all_status$ahead_behind]($style)"
-style = "red"
-ahead = "⇡"
-behind = "⇣"
-diverged = "⇕"
+style = "fg:#888888"
+ahead = "↑"
+behind = "↓"
+diverged = "↕"
+modified = "~"
+staged = "+"
+deleted = "-"
+untracked = "?"
 
 [character]
-success_symbol = "[❯](green)"
-error_symbol = "[❯](red)"
+success_symbol = "[❯](fg:#4a8a4a)"
+error_symbol = "[❯](fg:#8a4a4a)"
 
 [cmd_duration]
 min_time = 2000
-format = "[ $duration]($style)"
-style = "yellow"
+format = "[$duration]($style)"
+style = "fg:#888888"
