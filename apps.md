@@ -19,7 +19,6 @@ These aren't managed by Homebrew — download directly or from the App Store.
 - [ ] [Maccy](https://maccy.app) — clipboard history
 - [ ] [AltTab](https://alt-tab-macos.netlify.app) — better cmd-tab
 - [ ] [Granola](https://granola.ai) — meeting notes
-- [ ] [Grammarly](https://grammarly.com) — writing assistant
 - [ ] [Flux](https://justgetflux.com) — screen warmth
 
 ## Communication
