@@ -37,9 +37,22 @@ if [[ /opt/homebrew/bin/brew -nt "$BREW_CACHE" ]] || [[ ! -f "$BREW_CACHE" ]]; t
 fi
 source "$BREW_CACHE"
 
+# Prefer Apple Silicon Homebrew completions and ignore stale Intel paths.
+typeset -gaU fpath
+typeset -a _clean_fpath
+_clean_fpath=(/opt/homebrew/share/zsh/site-functions)
+for _dir in $fpath; do
+    [[ "$_dir" == "/usr/local/share/zsh/site-functions" ]] && continue
+    [[ -d "$_dir" ]] && _clean_fpath+=("$_dir")
+done
+fpath=("${_clean_fpath[@]}")
+unset _dir _clean_fpath
+
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================
+
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 export EDITOR='vim'
 export DBUS_SESSION_BUS_ADDRESS="unix:path=$DBUS_LAUNCHD_SESSION_BUS_SOCKET"
@@ -71,6 +84,16 @@ fi
 
 # Antigravity
 export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
+# Normalize PATH after all local additions.
+typeset -gaU path
+typeset -a _clean_path
+for _dir in $path; do
+    [[ -e "$_dir" ]] && _clean_path+=("$_dir")
+done
+path=("${_clean_path[@]}")
+export PATH
+unset _dir _clean_path
 
 # ============================================================================
 # GIT NUMBERED SHORTCUTS - scmpuff
@@ -116,6 +139,8 @@ alias gm='git merge'
 alias gf='git fetch'
 alias gfa='git fetch --all'
 alias gr='git remote -v'
+alias gsw='git switch'
+alias gswc='git switch -c'
 
 # ============================================================================
 # LAZY LOADED TOOLS - Only load when first used
@@ -295,21 +320,6 @@ else
 fi
 
 # ============================================================================
-# TIM'S BOX SCRIPTS - Load if available
-# ============================================================================
-
-# Auto-source Tim's box scripts from timbox/pollux repo
-# Always source to ensure functions are defined in new shells
-# Pre-set POLLUX_DIR to avoid path detection issues when sourcing from /
-if [ -f ~/workshop-labs/code/pollux/bash/tim/all.sh ]; then
-  export POLLUX_DIR=~/workshop-labs/code/pollux
-  source ~/workshop-labs/code/pollux/bash/tim/all.sh
-elif [ -f ~/workshop-labs/code/timbox/bash/tim/all.sh ]; then
-  export POLLUX_DIR=~/workshop-labs/code/timbox
-  source ~/workshop-labs/code/timbox/bash/tim/all.sh
-fi
-
-# ============================================================================
 # CUSTOM SHELL TOOLS
 # ============================================================================
 
@@ -317,8 +327,6 @@ fi
 if [ -f ~/bin/tools/load-tools.sh ]; then
   source ~/bin/tools/load-tools.sh
 fi
-
-export NEBIUS_PROFILE=sa-skypilot-uspoc
 
 # ============================================================================
 # POWERLEVEL10K CONFIG (disabled for Starship)
@@ -344,3 +352,4 @@ zinit light olets/zsh-transient-prompt
 if (( RANDOM % 5 == 0 )); then
     fortune -s 2>/dev/null | cowsay -r -W 100 --think 2>/dev/null || true
 fi
+
