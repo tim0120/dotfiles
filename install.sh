@@ -62,6 +62,18 @@ if [ -f "$DOTFILES_DIR/.config/karabiner.edn" ]; then
     create_symlink "$DOTFILES_DIR/.config/karabiner.edn" "$HOME/.config/karabiner.edn"
 fi
 
+# Copy Karabiner-Elements JSON config (cannot be symlinked — Karabiner writes to it)
+# Gaming mode and other manual additions live here; do NOT run goku or it will be overwritten
+if [ -f "$DOTFILES_DIR/.config/karabiner/karabiner.json" ]; then
+    mkdir -p "$HOME/.config/karabiner"
+    if [ ! -f "$HOME/.config/karabiner/karabiner.json" ]; then
+        echo -e "${GREEN}Copying karabiner.json${NC}"
+        cp "$DOTFILES_DIR/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+    else
+        echo -e "${YELLOW}Skipping karabiner.json (already exists — update manually if needed)${NC}"
+    fi
+fi
+
 # Symlink Starship prompt config
 if [ -f "$DOTFILES_DIR/.config/starship.toml" ]; then
     create_symlink "$DOTFILES_DIR/.config/starship.toml" "$HOME/.config/starship.toml"

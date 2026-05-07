@@ -8,12 +8,11 @@
              :s-mode {:key :s}    ; punctuation   ? ! : ; ' " ` ~
              :a-mode {:key :a}    ; navigation hjkl + tab + enter + page down/up
              ;
-             :q-mode {:key :q}    ; General shortcuts (browser etc.) - not settled
              :w-mode {:key :w}    ; Selection left and right (letter, word, line)
              :e-mode {:key :e}    ; Movement left and right (letter, word, line)
              :r-mode {:key :r}    ; Deletion left and right (letter, word, line)
              ;
-             :g-mode {:key :g}    ; Mouse scroll, desktop left-right, zoom in-out, screenshot (not implemented)
+             :g-mode {:key :g}    ; General shortcuts: browser tabs, back/forward
              ;
              :v-mode {:key :v}    ; Number pad with + - BS ENTER as well
              :c-mode {:key :c}    ; Slashes and lines  ^ | \ _ @
@@ -123,17 +122,20 @@
                 ]
          }
 
-        {:des "q-mode for general shortcuts like browser tab navigation"
-         :rules [:q-mode
-                  [:##j :!CSopen_bracket]  ; q -> j    tab to the left:  Cmd-{
-                  [:##k :!CSclose_bracket] ; q -> k    tab to the right: Cmd-}
-                  [:##l :!TCf           ]  ; q -> l    toggle full screen: ^⌘F
-                  [:##u :!Cclose_bracket]  ; q -> u    browser back:     Cmd-[
-                  [:##i :!Cclose_bracket]  ; q -> i    browser forward:  Cmd-]
-                  [:##o :f2             ]  ; q -> o    F2 (useful in Excel)
-                  [:##p :f4             ]  ; q -> p    F4 (useful in Excel)
+        {:des "g-mode for general shortcuts like browser tab navigation"
+         :rules [:g-mode
+                  [:##j :!CSclose_bracket] ; g -> j    tab to the right: Cmd-}
+                  [:##k :!CSopen_bracket]  ; g -> k    tab to the left:  Cmd-{
+                  [:##h :!CSopen_bracket]  ; g -> h    tab to the left:  Cmd-{ (hjkl alt)
+                  [:##l :!CSclose_bracket] ; g -> l    tab to the right: Cmd-} (hjkl alt)
+                  [:##u :!Copen_bracket]   ; g -> u    browser back:     Cmd-[
+                  [:##i :!Cclose_bracket]  ; g -> i    browser forward:  Cmd-]
                 ]
          }
+
+        ;; NOTE: Gaming mode (Fn+G toggle that disables all layers) cannot be expressed
+        ;; in goku EDN. It is stored in karabiner.json directly. If you run goku to
+        ;; recompile, gaming mode will be lost — use the committed karabiner.json instead.
 
         {:des "v-mode for number pad"
          :rules [:v-mode
@@ -167,11 +169,6 @@
 
         #_{:des "x-mode for some programming pairs like <= (not yet implemented)"
          :rules [:x-mode
-                ]
-        }
-
-        #_{:des "g-mode for mouse scroll, desktop left-right, zoom in-out, screenshot"
-         :rules [:g-mode
                 ]
         }
 
